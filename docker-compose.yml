@@ -1,0 +1,31 @@
+
+services:
+  web:
+    build: .
+    command: ["./wait-for-it.sh", "db:5432", "--", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+    volumes:
+      - .:/mvp-fintech
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DJANGO_SECRET_KEY: eAYR5XINCrLGZf7qJ_CU7a3u2E1Sn_c1j18RAldCv9gHv_tL2SAhs49V9wcJdySex4I
+      EMAIL_HOST_USER: cokoye381@gmail.com
+      EMAIL_HOST_PASSWORD: Emegozaram2$!
+      DEBUG: 'False'
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: finance_manager
+      POSTGRES_USER: Chukwuebuka
+      POSTGRES_PASSWORD: Icui4cu2
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+
+volumes:
+  pgdata:
