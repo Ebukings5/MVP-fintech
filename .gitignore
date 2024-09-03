@@ -1,0 +1,6 @@
+.env
+wait-for-it.sh
+requirements.txt
+Dockerfile
+docker-compose.yml
+.dockerignore

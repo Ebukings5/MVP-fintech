@@ -60,7 +60,7 @@ DATABASES = {
         'NAME': 'finance_manager',
         'USER': 'Chukwuebuka',
         'PASSWORD': 'Icui4cu2',
-        'HOST': 'db',  # Use the service name for Docker
+        'HOST': 'localhost',  # Update this if running outside Docker
         'PORT': '5432',
     }
 }
@@ -102,5 +102,5 @@ TEMPLATES = [
 ]
 
 # Debug settings
-DEBUG = True  # Set to False in production
-ALLOWED_HOSTS = ['localhost']  # Adjust for production
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'  # Set dynamically based on env variable
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')  # Adjust for production

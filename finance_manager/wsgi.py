@@ -1,3 +1,11 @@
+"""
+WSGI config for finance_manager project.
+
+This module contains the WSGI application used by Django's runserver and
+any WSGI-compatible web server. It exposes the WSGI callable as a module-level
+variable named ``application``.
+"""
+
 import os
 from django.core.wsgi import get_wsgi_application
 

@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   web:
@@ -10,10 +11,20 @@ services:
     depends_on:
       - db
     environment:
-      DJANGO_SECRET_KEY: eAYR5XINCrLGZf7qJ_CU7a3u2E1Sn_c1j18RAldCv9gHv_tL2SAhs49V9wcJdySex4I
-      EMAIL_HOST_USER: cokoye381@gmail.com
-      EMAIL_HOST_PASSWORD: Emegozaram2$!
-      DEBUG: 'False'
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      DEBUG: ${DEBUG:-'False'}  # Default to 'False' if not set
+      DB_NAME: finance_manager
+      DB_USER: Chukwuebuka
+      DB_PASSWORD: Icui4cu2
+      DB_HOST: db
+      DB_PORT: 5432
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   db:
     image: postgres:13
@@ -23,6 +34,11 @@ services:
       POSTGRES_PASSWORD: Icui4cu2
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Chukwuebuka"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis:alpine

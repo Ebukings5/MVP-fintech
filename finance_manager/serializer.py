@@ -22,6 +22,8 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'user']
 
 class ExpenseSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')  # Read-only field for user
+
     class Meta:
         model = Expense
         fields = ['id', 'category', 'amount', 'date', 'description', 'user']
@@ -61,8 +63,25 @@ class TransactionSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
+        user_profile = data['user'].profile
+
         if data['date'] > datetime.date.today():
-            raise serializers.ValidationError("Transaction date cannot be in the future.")
+            raise ValidationError("Transaction date cannot be in the future.")
+
+        transaction_type = data['type']
+        transaction_amount = data['amount']
+
+        if transaction_type == 'expense':
+            category = data['category']
+            total_spent = Transaction.objects.filter(user=user_profile.user, type='expense', category=category).aggregate(total=Sum('amount'))['total'] or 0
+            
+            try:
+                budget = Budget.objects.get(user=user_profile.user, category=category)
+                if total_spent + transaction_amount > budget.amount:
+                    raise ValidationError("This transaction exceeds your budget for this category.")
+            except Budget.DoesNotExist:
+                raise ValidationError("Budget does not exist for this category.")
+
         return data
 
     def create(self, validated_data):
@@ -104,21 +123,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         user_profile.save()
         instance.save()
         return instance
-
-    def validate(self, data):
-        user_profile = data['user'].profile
-        transaction_type = data['type']
-        transaction_amount = data['amount']
-
-        if transaction_type == 'expense':
-            category = data['category']
-            total_spent = Transaction.objects.filter(user=user_profile.user, type='expense', category=category).aggregate(total=Sum('amount'))['total'] or 0
-            budget = Budget.objects.get(user=user_profile.user, category=category)
-
-            if total_spent + transaction_amount > budget.amount:
-                raise ValidationError("This transaction exceeds your budget for this category.")
-
-        return data
 
 class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
