@@ -1,6 +1,11 @@
 import os
+import environ
 from celery.schedules import crontab
 from pathlib import Path
+
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env()  # Read .env file
 
 # Define BASE_DIR as a Path object
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +32,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'  # Correctly set the static root
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Secret key
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'default_secret_key')
+SECRET_KEY = env('DJANGO_SECRET_KEY', default='default_secret_key')
 
 # Middleware
 MIDDLEWARE = [
@@ -40,15 +45,15 @@ AUTH_USER_MODEL = 'finance_manager.CustomUser'
 
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 
 # Celery configuration
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://redis:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://redis:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
@@ -57,14 +62,13 @@ CELERY_TIMEZONE = 'UTC'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'finance_manager'),
-        'USER': os.getenv('DB_USER', 'chukwuebuka'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Icui4cu2'),
-        'HOST': os.getenv('DB_HOST', 'db'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'NAME': env('DB_NAME', default='finance_manager'),
+        'USER': env('DB_USER', default='chukwuebuka'),
+        'PASSWORD': env('DB_PASSWORD', default='Icui4cu2'),
+        'HOST': env('DB_HOST', default='db'),
+        'PORT': env.int('DB_PORT', default=5432),
     }
 }
-
 
 # REST framework configuration
 REST_FRAMEWORK = {
@@ -86,6 +90,7 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Templates configuration
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -103,5 +108,5 @@ TEMPLATES = [
 ]
 
 # Debug settings
-DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'  # Set dynamically based on env variable
-ALLOWED_HOSTS = ['*'] # Adjust for production
+DEBUG = env.bool('DJANGO_DEBUG', default=True)  # Set dynamically based on env variable
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', default='*').split(',')  # Adjust for production
