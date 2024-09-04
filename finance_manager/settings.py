@@ -47,8 +47,8 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # Celery configuration
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
@@ -57,13 +57,14 @@ CELERY_TIMEZONE = 'UTC'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'finance_manager',
-        'USER': 'Chukwuebuka',
-        'PASSWORD': 'Icui4cu2',
-        'HOST': 'localhost',  # Update this if running outside Docker
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME', 'finance_manager'),
+        'USER': os.getenv('DB_USER', 'chukwuebuka'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Icui4cu2'),
+        'HOST': os.getenv('DB_HOST', 'db'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
+
 
 # REST framework configuration
 REST_FRAMEWORK = {
@@ -102,5 +103,5 @@ TEMPLATES = [
 ]
 
 # Debug settings
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'  # Set dynamically based on env variable
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')  # Adjust for production
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'  # Set dynamically based on env variable
+ALLOWED_HOSTS = ['*'] # Adjust for production

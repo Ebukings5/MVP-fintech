@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build: .
@@ -16,7 +14,7 @@ services:
       EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
       DEBUG: ${DEBUG:-'False'}  # Default to 'False' if not set
       DB_NAME: finance_manager
-      DB_USER: Chukwuebuka
+      DB_USER: chukwuebuka
       DB_PASSWORD: Icui4cu2
       DB_HOST: db
       DB_PORT: 5432
@@ -30,12 +28,12 @@ services:
     image: postgres:13
     environment:
       POSTGRES_DB: finance_manager
-      POSTGRES_USER: Chukwuebuka
+      POSTGRES_USER: chukwuebuka
       POSTGRES_PASSWORD: Icui4cu2
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U Chukwuebuka"]
+      test: ["CMD-SHELL", "pg_isready -U chukwuebuka -d finance_manager"]
       interval: 30s
       timeout: 10s
       retries: 5
