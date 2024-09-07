@@ -65,7 +65,7 @@ DATABASES = {
         'NAME': env('DB_NAME', default='finance_manager'),
         'USER': env('DB_USER', default='chukwuebuka'),
         'PASSWORD': env('DB_PASSWORD', default='Icui4cu2'),
-        'HOST': env('DB_HOST', default='db'),
+        'HOST': 'db',
         'PORT': env.int('DB_PORT', default=5432),
     }
 }
