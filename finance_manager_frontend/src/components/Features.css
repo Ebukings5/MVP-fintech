@@ -1,0 +1,15 @@
+/* Features.css */
+.features {
+    text-align: center;
+    padding: 2rem;
+    background-color: #f8f9fa;
+  }
+  
+  .features h2 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .feature {
+    margin: 1rem 0;
+  }
+  
