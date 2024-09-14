@@ -28,6 +28,11 @@ class ExpenseSerializer(serializers.ModelSerializer):
         model = Expense
         fields = ['id', 'category', 'amount', 'date', 'description', 'user']
 
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero.")
+        return value
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
@@ -73,7 +78,12 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         if transaction_type == 'expense':
             category = data['category']
-            total_spent = Transaction.objects.filter(user=user_profile.user, type='expense', category=category).aggregate(total=Sum('amount'))['total'] or 0
+            total_spent = Transaction.objects.filter(
+                user=user_profile.user,
+                type='expense',
+                category=category,
+                date__range=[user_profile.created_at, datetime.date.today()]  # Consider date range
+            ).aggregate(total=Sum('amount'))['total'] or 0
             
             try:
                 budget = Budget.objects.get(user=user_profile.user, category=category)
@@ -132,4 +142,6 @@ class BudgetSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['start_date'] >= data['end_date']:
             raise serializers.ValidationError("End date must be after start date.")
+        if data['amount'] <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero.")
         return data

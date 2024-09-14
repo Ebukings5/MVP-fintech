@@ -15,6 +15,8 @@ from rest_framework.views import exception_handler, APIView
 from rest_framework.response import Response
 from django.http import HttpResponse
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth import authenticate
+#from .serializers import UserSerializer
 
 class UserCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -24,16 +26,18 @@ class UserCreateView(generics.CreateAPIView):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
 
 class ExpenseViewSet(viewsets.ModelViewSet):
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
+    permission_classes = [IsAuthenticated]
 
 class ReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        total_expense = Expense.objects.filter(user=request.user).aggregate(Sum('amount'))
+        total_expense = Expense.objects.filter(user=request.user).aggregate(total_expense=Sum('amount'))['total_expense'] or 0
         return Response({"total_expense": total_expense})
 
 class ExportDataView(APIView):
@@ -55,9 +59,27 @@ class ExportDataView(APIView):
 class RegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
+    permission_classes = (AllowAny,)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    pass
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        email = data.get('email')
+        password = data.get('password')
+
+        user = authenticate(email=email, password=password)
+        if user is not None:
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            tokens = serializer.validated_data
+            return Response({
+                'refresh': str(tokens['refresh']),
+                'access': str(tokens['access']),
+            })
+        else:
+            return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class TransactionListCreateView(generics.ListCreateAPIView):
     queryset = Transaction.objects.all()
@@ -74,7 +96,10 @@ class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         user_profile = instance.user.profile
-        user_profile.balance += instance.amount if instance.type == 'expense' else -instance.amount
+        if instance.type == 'income':
+            user_profile.balance -= instance.amount
+        elif instance.type == 'expense':
+            user_profile.balance += instance.amount
         user_profile.save()
         instance.delete()
 

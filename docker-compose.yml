@@ -11,8 +11,6 @@ services:
       - app-network
 
   web:
-    env_file:
-      - .env
     build: .
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
@@ -21,6 +19,11 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - redis
+    env_file:
+      - .env
+    environment:
+      - IN_DOCKER=true # Explicitly set to detect Docker environment
     networks:
       - app-network
 

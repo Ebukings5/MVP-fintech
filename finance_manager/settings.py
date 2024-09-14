@@ -16,12 +16,20 @@ ROOT_URLCONF = 'finance_manager.urls'
 # Installed apps
 INSTALLED_APPS = [
     'core',
+    'rest_framework',
     'rest_framework_simplejwt',
+    'django_celery_beat',
     'finance_manager',
     'django.contrib.contenttypes',
     'django.contrib.auth',
-    'django_celery_beat',
     'django.contrib.staticfiles',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+]
+
+# CORS configuration
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # Add your frontend URL
 ]
 
 # Static files
@@ -36,8 +44,15 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default='default_secret_key')
 
 # Middleware
 MIDDLEWARE = [
-    'core.middleware.ValidateRequestMiddleware',
-    'core.middleware.YourMiddlewareClass',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.ValidateRequestMiddleware',  # Ensure these are implemented
+    'core.middleware.CustomMiddleware',  # Ensure this matches your actual class and path
 ]
 
 # Custom user model
@@ -48,35 +63,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='default_email@example.com')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='default_password')
 
 # Celery configuration
-CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://redis:6379/0')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://redis:6379/0')
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
-
-# Database configuration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME', default='finance_manager'),
-        'USER': env('DB_USER', default='chukwuebuka'),
-        'PASSWORD': env('DB_PASSWORD', default='Icui4cu2'),
-        'HOST': 'db',
-        'PORT': env.int('DB_PORT', default=5432),
-    }
-}
-
-# REST framework configuration
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'EXCEPTION_HANDLER': 'core.views.custom_exception_handler',
-}
 
 # Celery beat schedule
 CELERY_BEAT_SCHEDULE = {
@@ -90,11 +85,35 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Database configuration
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DB_NAME', default='finance_manager'),
+        'USER': env('DB_USER', default='chukwuebuka'),
+        'PASSWORD': env('DB_PASSWORD', default='Icui4cu2'),
+        'HOST': 'db' if os.getenv('IN_DOCKER') else 'localhost',  # Use 'localhost' locally and 'db' in Docker
+        'PORT': env.int('DB_PORT', default=5432),
+    }
+}
+
+# REST framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'EXCEPTION_HANDLER': 'core.views.custom_exception_handler',
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
 # Templates configuration
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Ensure template directory is set
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -108,5 +127,5 @@ TEMPLATES = [
 ]
 
 # Debug settings
-DEBUG = env.bool('DJANGO_DEBUG', default=True)  # Set dynamically based on env variable
+DEBUG = env.bool('DJANGO_DEBUG', default=False)  # Set dynamically based on env variable
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', default='*').split(',')  # Adjust for production

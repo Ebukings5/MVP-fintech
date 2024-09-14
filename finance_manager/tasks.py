@@ -15,7 +15,7 @@ def send_notification(user_id, message):
         send_mail(
             'Notification',
             message,
-            'cokoye381@gmail.com',  # Consider using an environment variable
+            'your_email@example.com',  # Use an environment variable for email sender
             [user.email],
             fail_silently=False,
         )
@@ -36,7 +36,7 @@ def send_upcoming_bill_notifications():
                 send_mail(
                     'Upcoming Bill Reminder',
                     f'Dear {user.user.first_name}, you have an upcoming bill: {notification.description} due on {notification.date}.',
-                    'cokoye381@gmail.com',  # Consider using an environment variable
+                    'your_email@example.com',  # Use an environment variable for email sender
                     [user.user.email],
                     fail_silently=False,
                 )
@@ -52,13 +52,19 @@ def send_budget_limit_alerts():
     for user in users:
         budgets = Budget.objects.filter(user=user)
         for budget in budgets:
-            total_spent = Transaction.objects.filter(user=user, type='expense', category=budget.category).aggregate(total=Sum('amount'))['total'] or 0
+            total_spent = Transaction.objects.filter(
+                user=user.user,
+                type='expense',
+                category=budget.category,
+                date__range=[budget.start_date, datetime.now()]  # Consider transactions within budget period
+            ).aggregate(total=Sum('amount'))['total'] or 0
+
             if total_spent > budget.amount * 0.9 and not budget.alert_sent:
                 try:
                     send_mail(
                         'Budget Limit Alert',
-                        f'Dear {user.user.first_name}, you are close to reaching your budget limit for {budget.category.name}.',
-                        'cokoye381@gmail.com',  # Consider using an environment variable
+                        f'Dear {user.user.first_name}, you are close to reaching your budget limit for {budget.category.name}. You have spent {total_spent} out of your {budget.amount} budget.',
+                        'your_email@example.com',  # Use an environment variable for email sender
                         [user.user.email],
                         fail_silently=False,
                     )
@@ -69,3 +75,15 @@ def send_budget_limit_alerts():
 
     # Bulk update budgets to reduce the number of database hits
     Budget.objects.bulk_update(budgets_to_update, ['alert_sent'])
+
+@shared_task
+def reset_budget_alerts():
+    # Reset the `alert_sent` field for budgets at the start of each new period (e.g., monthly)
+    today = datetime.now().date()
+    start_of_month = today.replace(day=1)
+    budgets = Budget.objects.filter(end_date__gte=start_of_month, alert_sent=True)
+    for budget in budgets:
+        budget.alert_sent = False
+
+    # Bulk update budgets to reduce the number of database hits
+    Budget.objects.bulk_update(budgets, ['alert_sent'])
