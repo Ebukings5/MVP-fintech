@@ -53,7 +53,7 @@ Database (PostgreSQL): Data persistence layer.
 Task Queue (Celery): Handles background jobs and notifications.
 Project Structure
 bash
-Copy code
+
 /MVP-finance_manager/
 |-- core/                     # Core app containing models, views, and serializers
 |-- static/                   # Static files (CSS, JavaScript, Images)
@@ -76,41 +76,41 @@ Installation
 Clone the repository:
 
 bash
-Copy code
-git clone https://github.com/yourusername/mvp-finance_manager.git
+
+git clone https://github.com/Ebukings5/mvp-finance_manager.git
 cd mvp-finance_manager
 Set up the virtual environment:
 
 bash
-Copy code
+
 python3 -m venv venv
 source venv/bin/activate
 Install dependencies:
 
 bash
-Copy code
+
 pip install -r requirements.txt
 Set up environment variables: Create a .env file in the root directory and populate it with necessary environment variables (see .env.sample for reference).
 
 Run migrations:
 
 bash
-Copy code
+
 python manage.py migrate
 Create a superuser:
 
 bash
-Copy code
+
 python manage.py createsuperuser
 Run the development server:
 
 bash
-Copy code
+
 python manage.py runserver
 (Optional) Run with Docker: If you're using Docker, simply run:
 
 bash
-Copy code
+
 docker-compose up --build
 API Endpoints
 Authentication
@@ -156,7 +156,7 @@ Unit Tests
 Run unit tests to ensure core functions work as expected:
 
 bash
-Copy code
+
 python manage.py test
 API Testing
 Use Postman to manually test API endpoints:
@@ -170,7 +170,7 @@ Set up your server (e.g., AWS, Heroku, DigitalOcean).
 Configure environment variables.
 Use Docker for containerization:
 bash
-Copy code
+
 docker-compose -f docker-compose.prod.yml up --build
 Set up a reverse proxy using Nginx.
 Configure Gunicorn as the WSGI server.
